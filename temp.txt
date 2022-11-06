@@ -1,1 +1,1 @@
-Improve code quality
+Refactor code
