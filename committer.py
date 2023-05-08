@@ -3,52 +3,62 @@ import random
 import subprocess
 from datetime import datetime, timedelta
 
-# Set your desired date range
-start_date = "2022-01-01"
-end_date = "2022-01-31"
 
-# Replace this with the path to your local Git repository
-repo_path = "/path/to/your/local/repo"
+def create_commit(date, commit_messages, repo_path):
+    commit_date = date.strftime("%Y-%m-%dT%H:%M:%S")
 
-# A temporary file for the script
-temp_file = "temp.txt"
+    # Choose a random commit message
+    commit_message = random.choice(commit_messages)
 
-# Predefined commit messages
-commit_messages = [
-    "Update documentation",
-    "Refactor code",
-    "Fix bug",
-    "Add new feature",
-    "Improve performance",
-    "Add tests",
-    "Update dependencies",
-    "Improve user experience",
-]
-
-def create_commit(date):
-    message = random.choice(commit_messages)
-    print(f"Commit for {date}: {message}")
-
+    # Create a temporary file to stage for the commit
+    temp_file = "temp.txt"
     with open(os.path.join(repo_path, temp_file), "w") as f:
-        f.write(str(date))
+        f.write(commit_message)
 
-    os.chdir(repo_path)
+    # Stage the temporary file
     subprocess.run(["git", "add", temp_file])
-    subprocess.run(["git", "commit", "--date", str(date), "-m", message])
 
-def random_commits(date):
-    num_commits = random.randint(0, 7)  # Generate a random number between 0 and 7
-    for _ in range(num_commits):
-        create_commit(date)
+    # Create the commit with the chosen message and date
+    subprocess.run(["git", "commit", "--message",
+                   commit_message, "--date", commit_date])
 
-current_date = datetime.fromisoformat(start_date)
-end_date_obj = datetime.fromisoformat(end_date)
+    print(f"Commit for {commit_date}: {commit_message}")
 
-while current_date <= end_date_obj:
-    if random.random() < 0.7:  # 70% chance to create commits on any given day
-        random_commits(current_date)
 
-    current_date += timedelta(days=1)
+def simulate_commits(start_date, end_date, repo_path, commit_chance, min_commits, max_commits, commit_messages):
+    current_date = datetime.fromisoformat(start_date)
+    end_date_obj = datetime.fromisoformat(end_date)
 
-# Push the commits to the remote repository
-subprocess.run(["git", "push"])
+    while current_date <= end_date_obj:
+        if random.random() < commit_chance:
+            num_commits = random.randint(min_commits, max_commits)
+            for _ in range(num_commits):
+                create_commit(current_date, commit_messages, repo_path)
+        current_date += timedelta(days=1)
+
+    subprocess.run(["git", "push"])
+
+
+def main():
+    start_date = "2022-01-01"
+    end_date = "2022-01-31"
+    repo_path = "/path/to/your/local/repo"
+    commit_chance = 0.7
+    min_commits = 0
+    max_commits = 7
+    commit_messages = [
+        "Update documentation",
+        "Refactor code",
+        "Add new feature",
+        "Fix bug",
+        "Improve performance",
+        "Update dependencies",
+        "Improve code quality",
+    ]
+
+    simulate_commits(start_date, end_date, repo_path,
+                     commit_chance, min_commits, max_commits, commit_messages)
+
+
+if __name__ == "__main__":
+    main()
